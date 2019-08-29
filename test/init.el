@@ -1,0 +1,283 @@
+;;文字サイズ変更
+
+;; Added by Package.el.  This must come before configurations of
+;; installed packages.  Don't delete this line.  If you don't want it,
+;; just comment it out by adding a semicolon to the start of the line.
+;; You may delete these explanatory comments.
+(package-initialize)
+
+(set-face-attribute 'default nil :height 130)
+
+;;ロードパスの設定
+(add-to-list 'load-path "~/.emacs.d/lisp/")
+
+;;tab移動のキーの割り当て
+(global-set-key [(control tab)] 'tabbar-forward)
+(global-set-key [(control shift tab)] 'tabbar-backward)
+
+;;マウスのホイールの設定
+(global-set-key [wheel-up] 'scroll-down-with-lines)
+(global-set-key [wheel-down] 'scroll-up-with-lines)
+
+
+;; 日本語のフォントの設定
+(set-fontset-font
+ nil 'japanese-jisx0208
+;; (font-spec :family "Hiragino Mincho Pro")) ;; font
+ (font-spec :family "Hiragino Kaku Gothic ProN")) ;; font
+
+;; スクリプトっぽかったら勝手に実行ビットを立てる
+ (add-hook 'after-save-hook 'executable-make-buffer-file-executable-if-script-p)
+
+;;全角スペースとタブを可視化
+(setq whitespace-style
+      '(tabs tab-mark spaces space-mark))
+(setq whitespace-space-regexp "\\(\x3000+\\)")
+(setq whitespace-display-mappings
+      '((space-mark ?\x3000 [?\□])
+        (tab-mark   ?\t   [?\xBB ?\t])
+        ))
+(require 'whitespace)
+(global-whitespace-mode 1)
+(set-face-foreground 'whitespace-space "LightSlateGray")
+(set-face-background 'whitespace-space "DarkSlateGray")
+(set-face-foreground 'whitespace-tab "LightSlateGray")
+(set-face-background 'whitespace-tab "DarkSlateGray")
+
+
+;; 改行時に自動インデント
+(global-set-key "\C-m" 'newline-and-indent)
+
+
+;; ;; 背景色設定
+ 
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(default ((t (:background "black" :foreground "#EEEEEE"))))
+ '(trailing-whitespace ((t (:background "Black")))))
+
+;;はじめにひな形を挿入
+(require 'autoinsert)
+(add-hook 'find-file-hooks 'auto-insert)
+(setq auto-insert-query nil) ;; 自動補完しますか?って最初に聞かれる機能のオンオフ
+;; テキスト形式で与える方法
+;; (setq auto-insert-directory "~/.emacs.d/insert/") ;; 最後にスラッシュ必要
+;; (define-auto-insert "\\.rb$" "template.rb")
+(setq auto-insert-alist nil) ;; デフォルトのひな形を一度全部オフにする。
+(setq auto-insert-alist
+      (append '(
+                (("\\.rb$" . "ruby template")
+                 nil ;; ここに"name?"とか書くと、最初にミニバッファで"name?"ってでて入力を促される。入力したものはstrという変数に入る。
+                 "#!/usr/bin/ruby\n# -*- coding: utf-8 -*-\n"
+                 "\n"
+                 _ ;; アンダーバーを書いたところにカーソルが移動する
+                 )) auto-insert-alist))
+(setq auto-insert-alist
+      (append '(
+                (("\\.py$" . "python template")
+                 nil
+                 "#!/usr/bin/env python\n"
+                 "\n"
+                 "import sys, os, math\n"
+                 "# import numpy as np\n"
+                 "# import scipy as sp\n"
+                 "# import ROOT\n"
+                 "# import pyfits as pf\n"
+                 "\n"
+                 _
+                 )) auto-insert-alist))
+(setq auto-insert-alist
+      (append '(
+                (("\\.sh$" . "shell script template")
+                 nil
+                 "#!/bin/bash\n"
+                 "\n"
+                 _
+                 )) auto-insert-alist))
+
+;;Don't show it againの表示をなくす
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(flyspell-auto-correct-binding [(control 58)])
+ '(inhibit-startup-screen t)
+ '(safe-local-variable-values (quote ((TeX-master . t))))
+ '(server-switch-hook (quote (raise-frame))))
+
+
+;;Emacsのタブ機能の追加
+(require 'tabbar)
+(tabbar-mode)
+(global-set-key "\M-]" 'tabbar-forward)  ; 次のタブ
+(global-set-key "\M-[" 'tabbar-backward) ; 前のタブ
+;; タブ上でマウスホイールを使わない
+(tabbar-mwheel-mode nil)
+;; グループを使わない
+(setq tabbar-buffer-groups-function nil)
+;; 左側のボタンを消す
+(dolist (btn '(tabbar-buffer-home-button
+               tabbar-scroll-left-button
+               tabbar-scroll-right-button))
+  (set btn (cons (cons "" nil)
+                 (cons "" nil))))
+;; tabbarの色設定
+(set-face-attribute ; バー自体の色
+  'tabbar-default nil
+   :background "yellow"
+   :family "Inconsolata"
+   :height 1.0)
+(set-face-attribute ; アクティブなタブ
+  'tabbar-selected nil
+   :background "black"
+   :foreground "white"
+   :weight 'bold
+   :box nil)
+(set-face-attribute ; 非アクティブなタブ
+  'tabbar-unselected nil
+   :background "yellow"
+   :foreground "black"
+   :box nil)
+
+;; マウスホイールでスクロール
+(defun scroll-down-with-lines ()
+  "" (interactive) (scroll-down 1))
+(defun scroll-up-with-lines ()
+   "" (interactive) (scroll-up 1))
+(global-set-key [mouse-4] 'scroll-down-with-lines)
+(global-set-key [mouse-5] 'scroll-up-with-lines)
+;; スクロールステップ 1 に設定
+(setq scroll-step 1)
+
+;; for YaTex
+;; Add library path
+(add-to-list 'load-path "/Applications/Emacs.app/Contents/Resources/site-lisp/yatex")
+;; YaTeX mode
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(setq auto-mode-alist
+    (cons (cons "\\.tex$" 'yatex-mode) auto-mode-alist))
+(autoload 'yatex-mode "yatex" "Yet Another LaTeX mode" t)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;エラー回避のため削除2016/01/26
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;削除したらyatex使えなくなる
+(setq tex-command "platex -synctex=1")
+(setq dviprint-command-format "dvipdfmx %s")
+;; use Skim
+;;(setq dvi2-command " /usr/bin/open -a Skim")
+;;(setq tex-pdfview-command "/usr/bin/open -a Skim")
+;; use Preview.app
+(setq dvi2-command "/usr/bin/open -a Preview")
+(setq tex-pdfview-command "/usr/bin/open -a Preview")
+(setq bibtex-command "pbibtex")
+;; tex-template
+(setq YaTeX-template-file "~/.emacs.d/template.tex")
+;; yatex indent disable
+(add-hook 'yatex-mode-hook '(lambda ()
+			      (electric-indent-local-mode -1)))
+;; yatex source speccial
+;; (server-start) ; 必須
+;;(require 'xdvi-search) ; 必須
+
+ ; 窓を上に
+
+(add-hook 'yatex-mode-hook
+           '(lambda ()
+              (define-key YaTeX-mode-map "\C-c\C-j" 'xdvi-jump-to-line)))
+;; YaTeX起動時に，flyspell-modeも起動する
+(add-hook 'yatex-mode-hook 'flyspell-mode)
+
+
+
+;;; window サイズ設定
+(setq default-frame-alist
+     (append
+      '((width . 150) (height . 50)) ;; 文字数
+      '((top . 0) (right . 1680)) ;; pixel値
+;;      '((top . 20) (left . 1620)) ;; pixel値 (デュアルディスプレイの右側に表示させたい場合，このような指定にすれば良い)
+     default-frame-alist))
+
+;;(require 'color-theme)
+;;(color-theme-initialize)
+;;(color-theme-molokai)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;追記2016/01/26
+;; 何故かplatex等が使えなかったので(platex: command not foundとか表示される)pathを通す。
+;; 必要なのは多分/usr/texbinだけだけど、コピペ元の設定をそのまま流用する。
+;; 何故かplatex等が使えなかったので(platex: command not foundとか表示される)pathを通す。
+;; 必要なのは多分/usr/texbinだけだけど、コピペ元の設定をそのまま流用する。
+(dolist (dir (list
+              "/sbin"
+              "/usr/sbin"
+              "/bin"
+              "/usr/bin"
+              "/opt/local/bin"
+              "/sw/bin"
+              "/usr/local/bin"
+              "/usr/texbin"
+              (expand-file-name "~/bin")
+              (expand-file-name "~/.emacs.d/bin")
+              ))
+ ;; PATH と exec-path に同じ物を追加します
+ (when (and (file-exists-p dir) (not (member dir exec-path)))
+   (setenv "PATH" (concat dir ":" (getenv "PATH")))
+   (setq exec-path (append (list dir) exec-path))))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(global-set-key "\C-x\C-l" 'goto-line) ;goto-lineのショートカット
+(global-set-key "\C-x\C-a" 'replace-regexp) ;replaceのショートカット
+(global-linum-mode t)
+
+;;; 対応する括弧を光らせる。
+(show-paren-mode 1)
+;;; カーソルの位置が何文字目かを表示する
+(column-number-mode t)
+;; スタートアップ非表示
+(setq inhibit-startup-screen t)
+;; scratchの初期メッセージ消去
+(setq initial-scratch-message "")
+
+;; ツールバー非表示
+(tool-bar-mode -1)
+;; メニューバーを非表示
+(menu-bar-mode -1)
+;;ビープ音を消す
+(setq ring-bell-function 'ignore)
+;;ispellをaspellに置き換え
+(setq ispell-program-name "aspell")
+
+;;日本語まじりでも使えるようにする
+(eval-after-load "ispell"
+ '(add-to-list 'ispell-skip-region-alist '("[^\000-\377]+")))
+;;YaTeXモードの時にのみ動作させる用に条件分岐
+(defun ispell-before-save-if-needed ()
+  (when (memq major-mode
+              '(yatex-mode))
+    (ispell)))
+
+(add-hook 'before-save-hook 'ispell-before-save-if-needed)
+
+;;YaTeXモードの時にのみflyspell-modeを起動
+(mapc
+ (lambda (hook)(add-hook hook '(lambda () (flyspell-mode 1))))
+ '(yatex-mode-hook))
+;;選択範囲をインデントできるようにする
+(global-set-key "\C-x\C-i" 'indent-region)
+;;C-hをdeleteに設定
+(global-set-key "\C-h" 'grep)
+;;矢印無効
+(global-unset-key "\C-z")
+
+;;sppedbar表示
+(require 'sr-speedbar)
+
+
+(setq 
+    sr-speedbar-width 15 
+    speedbar-use-images nil 
+    speedbar-show-unknown-files t 
+    )
+
+(when window-system 
+    (sr-speedbar-open)) 
